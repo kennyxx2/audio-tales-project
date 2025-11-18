@@ -1,0 +1,488 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Мир Снов</title>
+    <style>
+        /* --- Общие стили --- */
+        body, html {
+            margin: 0;
+            padding: 0;
+            font-family: 'Georgia', serif;
+            background-color: #1a0b2e;
+            color: #fff;
+            overflow-x: hidden;
+            height: 100%;
+        }
+
+        /* --- Экран "Ворота" (Landing) --- */
+        #landing {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100vh;
+            /* Темный мистический лес на фоне */
+            background: url('https://images.unsplash.com/photo-1518709268805-4e9042af9f23?q=80&w=1920&auto=format&fit=crop') no-repeat center center/cover;
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+            align-items: center;
+            z-index: 10;
+            overflow: hidden;
+        }
+
+        /* Затемнение фона */
+        #landing::before {
+            content: '';
+            position: absolute;
+            top: 0; left: 0; right: 0; bottom: 0;
+            background: rgba(0, 0, 0, 0.7);
+            z-index: 1;
+        }
+
+        /* Контейнер для ворот и текста */
+        .gate-container {
+            position: relative;
+            z-index: 5;
+            text-align: center;
+            cursor: pointer;
+            transition: transform 2s ease-in, opacity 1.5s ease-in;
+        }
+
+        /* Изображение ворот */
+        .gate-img {
+            width: 300px; /* Размер ворот для ПК */
+            height: auto;
+            filter: drop-shadow(0 0 15px rgba(255, 215, 0, 0.3));
+            transition: filter 0.3s ease, transform 0.3s ease;
+        }
+
+        /* Эффект при наведении мыши на ворота */
+        .gate-container:hover .gate-img {
+            filter: drop-shadow(0 0 30px rgba(255, 215, 0, 0.8));
+            transform: scale(1.02);
+        }
+
+        /* Текст над воротами */
+        .welcome-text {
+            font-size: 2rem; /* Размер текста для ПК */
+            color: #ffd700;
+            margin-bottom: 20px;
+            text-shadow: 0 0 10px #000;
+            animation: textFloat 3s ease-in-out infinite;
+        }
+
+        @keyframes textFloat {
+            0%, 100% { transform: translateY(0); }
+            50% { transform: translateY(-10px); }
+        }
+
+        /* Класс для анимации открытия */
+        .gate-opening {
+            transform: scale(5);
+            opacity: 0;
+            pointer-events: none;
+        }
+
+        /* --- Светлячки (остаются прежними) --- */
+        .firefly {
+            position: absolute;
+            width: 6px;
+            height: 6px;
+            background-color: #ffd700;
+            border-radius: 50%;
+            box-shadow: 0 0 10px #ffd700;
+            opacity: 0;
+            animation: fly 10s linear infinite;
+            z-index: 2;
+            pointer-events: none;
+        }
+        @keyframes fly {
+            0% { transform: translateY(100vh) scale(0); opacity: 0; }
+            20% { opacity: 1; }
+            80% { opacity: 1; }
+            100% { transform: translateY(-10vh) scale(1); opacity: 0; }
+        }
+
+        /* --- Страница со сказками (Library) --- */
+        #library {
+            display: none;
+            padding: 40px 20px;
+            max-width: 1200px;
+            margin: 0 auto;
+            opacity: 0;
+            transition: opacity 1.5s ease-in;
+        }
+
+        .section-title {
+            text-align: center;
+            font-size: 2.5rem;
+            margin-bottom: 40px;
+            color: #ffd700;
+            text-shadow: 0 2px 5px rgba(0,0,0,0.5);
+        }
+
+        .fairy-tale-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(300px, 1fr));
+            gap: 30px;
+        }
+
+        .card {
+            background: rgba(255, 255, 255, 0.1);
+            border-radius: 15px;
+            overflow: hidden;
+            backdrop-filter: blur(5px);
+            border: 1px solid rgba(255, 255, 255, 0.2);
+            transition: transform 0.3s, box-shadow 0.3s;
+        }
+        .card:hover {
+            transform: translateY(-10px);
+            box-shadow: 0 10px 30px rgba(255, 215, 0, 0.2);
+        }
+        .card-img {
+            width: 100%;
+            height: 200px;
+            object-fit: cover;
+        }
+        .card-content { padding: 20px; text-align: center; }
+        .card-title { font-size: 1.5rem; margin-bottom: 15px; color: #eee; }
+        audio { width: 100%; height: 40px; border-radius: 20px; }
+
+        /* Управление звуком */
+        #sound-control {
+            position: fixed;
+            bottom: 20px; right: 20px;
+            background: rgba(0,0,0,0.5);
+            color: #fff; padding: 10px; border-radius: 50%;
+            cursor: pointer; display: none; z-index: 100;
+            border: 1px solid #ffd700; font-size: 1.5rem;
+        }
+
+        /* ------------------------------------------- */
+        /* --- АДАПТАЦИЯ ДЛЯ СМАРТФОНОВ (MOBILE) --- */
+        /* ------------------------------------------- */
+
+        @media (max-width: 768px) {
+            /* Оптимизация экрана Ворот */
+            .welcome-text {
+                font-size: 1.5rem; /* Уменьшаем заголовок */
+                margin-bottom: 15px;
+            }
+
+            .gate-img {
+                width: 200px; /* Уменьшаем размер ворот */
+            }
+
+            /* Уменьшаем анимацию, чтобы не "улетать" слишком быстро на маленьком экране */
+            .gate-opening {
+                transform: scale(3);
+            }
+            
+            /* Оптимизация страницы Библиотеки */
+            #library {
+                padding: 20px 10px; /* Уменьшаем отступы */
+            }
+
+            .section-title {
+                font-size: 1.8rem; /* Уменьшаем заголовок секции */
+                margin-bottom: 20px;
+            }
+
+            /* Сетка: 1 колонка на мобильном телефоне */
+            .fairy-tale-grid {
+                grid-template-columns: 1fr; /* Одна колонка для удобства просмотра */
+                gap: 20px;
+            }
+            
+            .card-img {
+                height: 150px; /* Немного уменьшаем высоту карточки */
+            }
+
+            .card-title {
+                font-size: 1.3rem; /* Уменьшаем заголовок сказки */
+            }
+            
+            /* Управление звуком */
+            #sound-control {
+                bottom: 10px;
+                right: 10px;
+                padding: 8px;
+                font-size: 1.2rem;
+            }
+        }
+    </style>
+</head>
+<body>
+
+    <audio id="bg-music" loop>
+        <source src="https://cdn.pixabay.com/download/audio/2022/02/10/audio_fc069f6d52.mp3?filename=relaxing-mountains-rivers-streams-running-water-18178.mp3" type="audio/mpeg">
+    </audio>
+    <div id="sound-control" onclick="toggleBgMusic()">🎵</div>
+
+    <div id="landing">
+        
+        <div class="gate-container" onclick="enterWorld()">
+            <div class="welcome-text">Добро пожаловать<br>в мир снов</div>
+            <img src="https://cdn-icons-png.flaticon.com/512/5244/5244357.png" alt="Волшебные ворота" class="gate-img">
+            
+        </div>
+
+    </div>
+
+    <div id="library">
+        <h2 class="section-title">✨ Ваша коллекция снов ✨</h2>
+        <h2 class="section-title">❤️ Сладких снов моя Принцесса ❤️</h2>
+        
+        <div class="fairy-tale-grid">
+            <div class="card">
+                <img src="https://mishka-knizhka.ru/wp-content/uploads/2020/05/skazka-pro-ryzhego-bratishku1.jpg" class="card-img">
+                <div class="card-content">
+                    <h3 class="card-title">Сказка про рыжего братишку</h3>
+                    <audio controls class="tale-audio">
+                        <source src="skazka1.mp3" type="audio/mpeg">
+                    </audio>
+                </div>
+            </div>
+            <div class="card">
+                <img src="https://mishka-knizhka.ru/wp-content/uploads/2022/10/krov-s-molokom1.jpg" class="card-img">
+                <div class="card-content">
+                    <h3 class="card-title">Кровь с молоком</h3>
+                    <audio controls class="tale-audio">
+                        <source src="skazka2.mp3" type="audio/mpeg">
+                    </audio>
+                </div>
+            </div>
+            <div class="card">
+                <img src="https://mishka-knizhka.ru/wp-content/uploads/2021/10/janchi-i-zmeja5-1.jpg.webp" class="card-img">
+                <div class="card-content">
+                    <h3 class="card-title">Янчи и змея</h3>
+                    <audio controls class="tale-audio">
+                        <source src="skazka3.mp3" type="audio/mpeg">
+                    </audio>
+                </div>
+            </div>
+
+            <div class="card">
+                <img src="https://mishka-knizhka.ru/wp-content/uploads/2022/11/printsessa-iz-apelsina.jpg" class="card-img">
+                <div class="card-content">
+                    <h3 class="card-title">Принцесса из апельсина</h3>
+                    <audio controls class="tale-audio">
+                        <source src="skazka4.mp3" type="audio/mpeg">
+                    </audio>
+                </div>
+            </div>
+
+            <div class="card">
+                <img src="https://mishka-knizhka.ru/wp-content/uploads/2024/03/jastreb-i-petukh-61.jpg.webp" class="card-img">
+                <div class="card-content">
+                    <h3 class="card-title">Ястреб и петух</h3>
+                    <audio controls class="tale-audio">
+                        <source src="skazka5.mp3" type="audio/mpeg">
+                    </audio>
+                </div>
+            </div>
+
+            <div class="card">
+                <img src="https://mishka-knizhka.ru/wp-content/uploads/2017/11/pyatero-iz-odnogo-stuchka1.jpg.webp" class="card-img">
+                <div class="card-content">
+                    <h3 class="card-title">Пятеро из одного стручка</h3>
+                    <audio controls class="tale-audio">
+                        <source src="skazka6.mp3" type="audio/mpeg">
+                    </audio>
+                </div>
+            </div>
+
+            <div class="card">
+                <img src="https://mishka-knizhka.ru/wp-content/uploads/2022/11/volshebnaya-kartina1.jpg.webp" class="card-img">
+                <div class="card-content">
+                    <h3 class="card-title">Волшебная картина</h3>
+                    <audio controls class="tale-audio">
+                        <source src="skazka7.mp3" type="audio/mpeg">
+                    </audio>
+                </div>
+            </div>
+
+            <div class="card">
+                <img src="https://mishka-knizhka.ru/wp-content/uploads/2020/10/korolevskij-marshal-i-ego-ukho.jpg.webp" class="card-img">
+                <div class="card-content">
+                    <h3 class="card-title">Королевский маршал и его ухо</h3>
+                    <audio controls class="tale-audio">
+                        <source src="skazka8.mp3" type="audio/mpeg">
+                    </audio>
+                </div>
+            </div>
+
+            <div class="card">
+                <img src="https://mishka-knizhka.ru/wp-content/uploads/2020/09/printsessa-molchunja2.jpg.webp" class="card-img">
+                <div class="card-content">
+                    <h3 class="card-title">Принцесса-молчунья</h3>
+                    <audio controls class="tale-audio">
+                        <source src="skazka9.mp3" type="audio/mpeg">
+                    </audio>
+                </div>
+            </div>
+
+            <div class="card">
+                <img src="https://mishka-knizhka.ru/wp-content/uploads/2019/10/shamus-i-ptitsy2.jpg" class="card-img">
+                <div class="card-content">
+                    <h3 class="card-title">Шамус и птицы</h3>
+                    <audio controls class="tale-audio">
+                        <source src="skazka10.mp3" type="audio/mpeg">
+                    </audio>
+                </div>
+            </div>
+
+            <div class="card">
+                <img src="https://mishka-knizhka.ru/wp-content/uploads/2022/10/skazka-o-pjatnadtsatom-syne-druge-lva-i-orla.jpg.webp" class="card-img">
+                <div class="card-content">
+                    <h3 class="card-title">Сказка о пятнадцатом сыне–друге льва и орла</h3>
+                    <audio controls class="tale-audio">
+                        <source src="skazka11.mp3" type="audio/mpeg">
+                    </audio>
+                </div>
+            </div>
+
+            <div class="card">
+                <img src="https://mishka-knizhka.ru/wp-content/uploads/2021/03/sverkhu-vniz-naiskosok1.jpg.webp" class="card-img">
+                <div class="card-content">
+                    <h3 class="card-title">Сверху вниз, наискосок</h3>
+                    <audio controls class="tale-audio">
+                        <source src="skazka12.mp3" type="audio/mpeg">
+                    </audio>
+                </div>
+            </div>
+
+            <div class="card">
+                <img src="https://mishka-knizhka.ru/wp-content/uploads/2024/05/slitki-serebra-1.jpg.webp" class="card-img">
+                <div class="card-content">
+                    <h3 class="card-title">Слитки серебра</h3>
+                    <audio controls class="tale-audio">
+                        <source src="skazka13.mp3" type="audio/mpeg">
+                    </audio>
+                </div>
+            </div>
+
+            <div class="card">
+                <img src="https://mishka-knizhka.ru/wp-content/uploads/2023/03/gadkij-goblin1.jpg.webp" class="card-img">
+                <div class="card-content">
+                    <h3 class="card-title">Гадский гоблин</h3>
+                    <audio controls class="tale-audio">
+                        <source src="skazka14.mp3" type="audio/mpeg">
+                    </audio>
+                </div>
+            </div>
+
+            <div class="card">
+                <img src="https://mishka-knizhka.ru/wp-content/uploads/2023/10/master-pfrim11.jpg.webp" class="card-img">
+                <div class="card-content">
+                    <h3 class="card-title">Мастер Пфрим</h3>
+                    <audio controls class="tale-audio">
+                        <source src="skazka15.mp3" type="audio/mpeg">
+                    </audio>
+                </div>
+            </div>
+
+            <div class="card">
+                <img src="https://mishka-knizhka.ru/wp-content/uploads/2019/10/pecshera-korolja-artura2.jpg.webp" class="card-img">
+                <div class="card-content">
+                    <h3 class="card-title">Пещера короля Артура</h3>
+                    <audio controls class="tale-audio">
+                        <source src="skazka16.mp3" type="audio/mpeg">
+                    </audio>
+                </div>
+            </div>
+
+            <div class="card">
+                <img src="https://mishka-knizhka.ru/wp-content/uploads/2020/03/koljuchee-privedenie.jpg.webp" class="card-img">
+                <div class="card-content">
+                    <h3 class="card-title">Колюяее привидение</h3>
+                    <audio controls class="tale-audio">
+                        <source src="skazka17.mp3" type="audio/mpeg">
+                    </audio>
+                </div>
+            </div>
+
+        </div>
+    </div>
+
+    <script>
+        const bgMusic = document.getElementById('bg-music');
+        const soundBtn = document.getElementById('sound-control');
+        let isBgMusicPlaying = false;
+
+        // АНИМАЦИЯ ПЕРЕХОДА
+        function enterWorld() {
+            const landing = document.getElementById('landing');
+            const gateContainer = document.querySelector('.gate-container');
+            const library = document.getElementById('library');
+
+            // 1. Запускаем музыку
+            bgMusic.volume = 0.3;
+            bgMusic.play().then(() => {
+                isBgMusicPlaying = true;
+                soundBtn.style.display = 'block';
+            }).catch(e => console.log("Autoplay blocked"));
+
+            // 2. Анимация "Прохода сквозь ворота"
+            // Добавляем класс, который увеличивает ворота (zoom)
+            gateContainer.classList.add('gate-opening');
+
+            // 3. Через 1.5 секунды (время анимации) скрываем лендинг
+            setTimeout(() => {
+                landing.style.display = 'none'; // Убираем лендинг полностью
+                library.style.display = 'block'; // Включаем блок библиотеки
+                
+                // Небольшая пауза, чтобы сработала CSS прозрачность
+                setTimeout(() => {
+                    library.style.opacity = '1';
+                }, 50);
+            }, 1400); // Чуть меньше 1.5с, чтобы переход был бесшовным
+        }
+
+        // Вкл/выкл музыки вручную
+        function toggleBgMusic() {
+            if (bgMusic.paused) {
+                bgMusic.play();
+                soundBtn.textContent = '🎵';
+                isBgMusicPlaying = true;
+            } else {
+                bgMusic.pause();
+                soundBtn.textContent = '🔇';
+                isBgMusicPlaying = false;
+            }
+        }
+
+        // Светлячки
+        function createFireflies() {
+            const container = document.getElementById('landing');
+            const count = 30;
+            for (let i = 0; i < count; i++) {
+                const firefly = document.createElement('div');
+                firefly.classList.add('firefly');
+                firefly.style.left = Math.random() * 100 + 'vw';
+                firefly.style.animationDuration = (Math.random() * 5 + 5) + 's';
+                firefly.style.animationDelay = Math.random() * 5 + 's';
+                container.appendChild(firefly);
+            }
+        }
+        window.onload = createFireflies;
+
+        // Умная пауза при прослушивании сказок
+        const taleAudios = document.querySelectorAll('.tale-audio');
+        taleAudios.forEach(audio => {
+            audio.addEventListener('play', () => {
+                taleAudios.forEach(other => { if (other !== audio) other.pause(); });
+                if (!bgMusic.paused) bgMusic.pause();
+            });
+            audio.addEventListener('pause', () => {
+                let isAnyPlaying = false;
+                taleAudios.forEach(a => { if(!a.paused) isAnyPlaying = true; });
+                if (!isAnyPlaying && isBgMusicPlaying) bgMusic.play();
+            });
+        });
+    </script>
+</body>
+</html>
